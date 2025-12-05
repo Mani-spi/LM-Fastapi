@@ -1,0 +1,76 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get current date and time
+        id: date
+        run: echo "timestamp=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Hostinger VPS
+        uses: appleboy/ssh-action@master
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
+          script: |
+            cd /root/VersionManager || mkdir -p /root/VersionManager && cd /root/VersionManager
+            
+            if [ -d ".git" ]; then
+              git pull origin main
+            else
+              git clone https://github.com/Dharmenthiran-spi/Software-Version-Manager.git .
+            fi
+            
+            docker-compose down || true
+            docker-compose up -d --build
+            docker image prune -f
+            
+            echo "Deployment completed successfully!"
+
+      - name: Create Release
+        if: success()
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          release_name: Release v1.0.${{ github.run_number }}
+          body: |
+            ## 🚀 Deployment Successful
+            
+            *Deployed at:* ${{ steps.date.outputs.timestamp }}
+            *Commit:* ${{ github.sha }}
+            *Branch:* ${{ github.ref_name }}
+            *Deployed by:* ${{ github.actor }}
+            
+            ### Changes in this release:
+            ${{ github.event.head_commit.message }}
+            
+            ### Deployment Details:
+            - Code deployed to Hostinger VPS (157.173.222.91)
+            - Docker containers rebuilt and started
+            - Old images cleaned up
+            
+            ---
+            Automated deployment via GitHub Actions
+          draft: false
+          prerelease: false

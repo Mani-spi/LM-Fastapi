@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+websockets
+sqlalchemy
+pymysql
+cryptography
+pillow
+python-multipart
+alembic
+python-dotenv
+pycryptodome
