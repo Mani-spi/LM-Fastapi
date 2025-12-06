@@ -584,7 +584,7 @@ def create_serial(serial: SerialCreate, db: Session = Depends(get_db)):
     #     db.add(item)
 
     # Generate a 16-byte key here
-    generated_key = generate_16char_key()
+    # generated_key = generate_16char_key()
 
     db_serial = SerialNumbers(
         serial_number=serial.serial_number,
@@ -724,7 +724,7 @@ def list_software_key(db: Session = Depends(get_db)):
 
 
 @app.put("/software_key/{key_id}", dependencies=[Depends(verify_api_key)])
-def update_serial(key_id: int, serial: SoftwareKeyUpdate, db: Session = Depends(get_db)):
+def update_software_key(key_id: int, serial: SoftwareKeyUpdate, db: Session = Depends(get_db)):
     db_serial = db.query(SoftwareKey).get(key_id)
     if not db_serial:
         raise HTTPException(status_code=404, detail="Software Key not found")
@@ -740,7 +740,7 @@ def update_serial(key_id: int, serial: SoftwareKeyUpdate, db: Session = Depends(
 
 
 @app.delete("/software_key/{key_id}", dependencies=[Depends(verify_api_key)])
-def delete_serial(key_id: int, db: Session = Depends(get_db)):
+def delete_software_key(key_id: int, db: Session = Depends(get_db)):
     db_serial = db.query(SoftwareKey).get(key_id)
     if not db_serial:
         raise HTTPException(status_code=404, detail="Software Key not found")
